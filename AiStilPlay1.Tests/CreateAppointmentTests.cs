@@ -2,6 +2,21 @@
 
 using AiStilPlay1.App;
 
+internal sealed class SlotsRepositoryStub: ISlotsRepository
+{
+    private IList<Slot> _bookedSlots = [];
+
+    public bool IsSlotBooked(Slot slot)
+    {
+        return _bookedSlots.Contains(slot);
+    }
+
+    public void BookSlot(Slot slot)
+    {
+        _bookedSlots.Add(slot);
+    }
+}
+
 public class CreateAppointmentTests
 {
     private static AppointmentRequest CreateAppointmentRequest()
@@ -19,10 +34,9 @@ public class CreateAppointmentTests
     {
         //Arrange
         var request = CreateAppointmentRequest();
-        IList<Slot> bookedSlots = [];
 
         //Act
-        AppointmentResponse response = new CreateAppointmentCommand(bookedSlots).Execute(request);
+        AppointmentResponse response = new CreateAppointmentCommand(new SlotsRepositoryStub()).Execute(request);
 
         //Assert
         Assert.NotNull(response);
@@ -37,12 +51,12 @@ public class CreateAppointmentTests
     {
         //Arrange
         var request = CreateAppointmentRequest();
-        IList<Slot> bookedSlots = [];
+        var repository = new SlotsRepositoryStub();
 
-        new CreateAppointmentCommand(bookedSlots).Execute(request);
+        new CreateAppointmentCommand(repository).Execute(request);
 
         //Act
-        AppointmentResponse response = new CreateAppointmentCommand(bookedSlots).Execute(request);
+        AppointmentResponse response = new CreateAppointmentCommand(repository).Execute(request);
 
         //Assert
         Assert.NotNull(response);
@@ -54,8 +68,7 @@ public class CreateAppointmentTests
     public void ShouldThrowWhenRequestIsNull()
     {
         //Arrange
-        IList<Slot> bookedSlots = [];
-        var command = new CreateAppointmentCommand(bookedSlots);
+        var command = new CreateAppointmentCommand(new SlotsRepositoryStub());
 
         //Act & Assert
         Assert.Throws<ArgumentNullException>(() => command.Execute(null!));

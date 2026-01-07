@@ -1,19 +1,25 @@
 namespace AiStilPlay1.App;
 
-public sealed class CreateAppointmentCommand(IList<Slot> bookedSlots)
+public interface ISlotsRepository
+{
+    bool IsSlotBooked(Slot slot);
+    void BookSlot(Slot slot);
+}
+
+public sealed class CreateAppointmentCommand(ISlotsRepository slotsRepository)
 {
     public AppointmentResponse Execute(AppointmentRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        if (bookedSlots.Contains(request.Slot))
+        if (slotsRepository.IsSlotBoocked(request.Slot))
         {
             return new AppointmentResponse 
             { 
                 IsSuccess = false 
             };
         }
-        bookedSlots.Add(request.Slot);
+        slotsRepository.BookSlot(request.Slot);
 
         Appointment appointment = new()
         {
