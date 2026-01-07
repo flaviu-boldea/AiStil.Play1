@@ -2,18 +2,42 @@
 
 using AiStilPlay1.App;
 
-internal sealed class SlotsRepositoryStub: ISlotsRepository
+internal sealed class SlotsRepositoryStub : ISlotsRepository
 {
-    private IList<Slot> _bookedSlots = [];
+    private readonly Dictionary<Guid, List<Slot>> _bookedSlotsByStylist = new();
 
-    public bool IsSlotBooked(Slot slot)
+    public bool IsSlotBooked(Guid stylistId, Slot slot)
     {
-        return _bookedSlots.Contains(slot);
+        if (!_bookedSlotsByStylist.TryGetValue(stylistId, out var slots))
+            return false;
+        
+        return slots.Contains(slot);
     }
 
-    public void BookSlot(Slot slot)
+    public void BookSlot(Guid stylistId, Slot slot)
     {
-        _bookedSlots.Add(slot);
+        if (!_bookedSlotsByStylist.TryGetValue(stylistId, out var slots))
+        {
+            slots = new List<Slot>();
+            _bookedSlotsByStylist[stylistId] = slots;
+        }
+        
+        slots.Add(slot);
+    }
+}
+
+internal sealed class StylistRepositoryStub : IStylistRepository
+{
+    private readonly ISlotsRepository _slotsRepository;
+
+    public StylistRepositoryStub(ISlotsRepository slotsRepository)
+    {
+        _slotsRepository = slotsRepository;
+    }
+
+    public Stylist GetById(Guid id)
+    {
+        return new Stylist(id, $"Stylist {id}", _slotsRepository);
     }
 }
 
@@ -34,9 +58,12 @@ public class CreateAppointmentTests
     {
         //Arrange
         var request = CreateAppointmentRequest();
+        var slotsRepo = new SlotsRepositoryStub();
+        var stylistRepo = new StylistRepositoryStub(slotsRepo);
+        var command = new CreateAppointmentCommand(stylistRepo);
 
         //Act
-        AppointmentResponse response = new CreateAppointmentCommand(new Slots(new SlotsRepositoryStub())).Execute(request);
+        AppointmentResponse response = command.Execute(request);
 
         //Assert
         Assert.NotNull(response);
@@ -51,12 +78,15 @@ public class CreateAppointmentTests
     {
         //Arrange
         var request = CreateAppointmentRequest();
-        var slots = new Slots(new SlotsRepositoryStub());
+        var slotsRepo = new SlotsRepositoryStub();
+        var stylistRepo = new StylistRepositoryStub(slotsRepo);
+        var command = new CreateAppointmentCommand(stylistRepo);
 
-        new CreateAppointmentCommand(slots).Execute(request);
+        // Book the slot first
+        command.Execute(request);
 
         //Act
-        AppointmentResponse response = new CreateAppointmentCommand(slots).Execute(request);
+        AppointmentResponse response = command.Execute(request);
 
         //Assert
         Assert.NotNull(response);
@@ -68,7 +98,9 @@ public class CreateAppointmentTests
     public void ShouldThrowWhenRequestIsNull()
     {
         //Arrange
-        var command = new CreateAppointmentCommand(new Slots(new SlotsRepositoryStub()));
+        var slotsRepo = new SlotsRepositoryStub();
+        var stylistRepo = new StylistRepositoryStub(slotsRepo);
+        var command = new CreateAppointmentCommand(stylistRepo);
 
         //Act & Assert
         Assert.Throws<ArgumentNullException>(() => command.Execute(null!));

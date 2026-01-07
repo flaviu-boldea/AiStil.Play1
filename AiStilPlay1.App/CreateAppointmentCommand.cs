@@ -2,42 +2,22 @@ namespace AiStilPlay1.App;
 
 public interface ISlotsRepository
 {
-    bool IsSlotBooked(Slot slot);
-    void BookSlot(Slot slot);
+    bool IsSlotBooked(Guid stylistId, Slot slot);
+    void BookSlot(Guid stylistId, Slot slot);
 }
 
-public sealed class Slots(ISlotsRepository repository)
+public interface IStylistRepository
 {
-    private IList<Slot> _bookedSlots = [];
-    public bool IsSlotBooked(Slot slot) => _bookedSlots.Contains(slot);
-
-    public void BookSlot(Slot slot) => _bookedSlots.Add(slot);
+    Stylist GetById(Guid id);
 }
 
-public sealed class CreateAppointmentCommand(Slots slots)
+public sealed class CreateAppointmentCommand(IStylistRepository stylistRepository)
 {
     public AppointmentResponse Execute(AppointmentRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        if (slots.IsSlotBooked(request.Slot))
-        {
-            return new AppointmentResponse 
-            { 
-                IsSuccess = false 
-            };
-        }
-        slots.BookSlot(request.Slot);
-
-        Appointment appointment = new()
-        {
-            Slot = request.Slot,
-            ClientId = request.ClientId
-        };
-        return new AppointmentResponse 
-        { 
-            Appointment = appointment,
-            IsSuccess = true 
-        };
+        var stylist = stylistRepository.GetById(request.Slot.StylistId);
+        return stylist.MakeAppointment(request.Slot, request.ClientId);
     }
 }
