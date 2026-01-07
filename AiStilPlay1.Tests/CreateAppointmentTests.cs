@@ -36,7 +36,7 @@ public class CreateAppointmentTests
         var request = CreateAppointmentRequest();
 
         //Act
-        AppointmentResponse response = new CreateAppointmentCommand(new SlotsRepositoryStub()).Execute(request);
+        AppointmentResponse response = new CreateAppointmentCommand(new Slots(new SlotsRepositoryStub())).Execute(request);
 
         //Assert
         Assert.NotNull(response);
@@ -51,12 +51,12 @@ public class CreateAppointmentTests
     {
         //Arrange
         var request = CreateAppointmentRequest();
-        var repository = new SlotsRepositoryStub();
+        var slots = new Slots(new SlotsRepositoryStub());
 
-        new CreateAppointmentCommand(repository).Execute(request);
+        new CreateAppointmentCommand(slots).Execute(request);
 
         //Act
-        AppointmentResponse response = new CreateAppointmentCommand(repository).Execute(request);
+        AppointmentResponse response = new CreateAppointmentCommand(slots).Execute(request);
 
         //Assert
         Assert.NotNull(response);
@@ -68,7 +68,7 @@ public class CreateAppointmentTests
     public void ShouldThrowWhenRequestIsNull()
     {
         //Arrange
-        var command = new CreateAppointmentCommand(new SlotsRepositoryStub());
+        var command = new CreateAppointmentCommand(new Slots(new SlotsRepositoryStub()));
 
         //Act & Assert
         Assert.Throws<ArgumentNullException>(() => command.Execute(null!));

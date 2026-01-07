@@ -6,20 +6,28 @@ public interface ISlotsRepository
     void BookSlot(Slot slot);
 }
 
-public sealed class CreateAppointmentCommand(ISlotsRepository slotsRepository)
+public sealed class Slots(ISlotsRepository repository)
+{
+    private IList<Slot> _bookedSlots = [];
+    public bool IsSlotBooked(Slot slot) => _bookedSlots.Contains(slot);
+
+    public void BookSlot(Slot slot) => _bookedSlots.Add(slot);
+}
+
+public sealed class CreateAppointmentCommand(Slots slots)
 {
     public AppointmentResponse Execute(AppointmentRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        if (slotsRepository.IsSlotBoocked(request.Slot))
+        if (slots.IsSlotBooked(request.Slot))
         {
             return new AppointmentResponse 
             { 
                 IsSuccess = false 
             };
         }
-        slotsRepository.BookSlot(request.Slot);
+        slots.BookSlot(request.Slot);
 
         Appointment appointment = new()
         {
