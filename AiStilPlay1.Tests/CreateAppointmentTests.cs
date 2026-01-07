@@ -12,12 +12,15 @@ public class CreateAppointmentTests
         var slot = new Slot(startDate, endDate, stylistId);
         var clientId = Guid.Parse("22222222-2222-2222-2222-222222222222");
 
+        IList<Slot> bookedSlots = [];
+
         //Act
-        AppointmentResponse response = CreateAppointmentCommand.Execute(slot, clientId);
+        AppointmentResponse response = CreateAppointmentCommand.Execute(slot, clientId, bookedSlots);
 
         //Assert
         Assert.NotNull(response);
-        Assert.True(response.IsSuccess);     
+        Assert.True(response.IsSuccess);
+        Assert.NotNull(response.Appointment);     
         Assert.Equal(slot, response.Appointment.Slot);
         Assert.Equal(clientId, response.Appointment.ClientId);   
     }
@@ -32,10 +35,12 @@ public class CreateAppointmentTests
         var slot = new Slot(startDate, endDate, stylistId);
         var clientId = Guid.Parse("22222222-2222-2222-2222-222222222222");
 
-        CreateAppointmentCommand.Execute(slot, clientId);
+        IList<Slot> bookedSlots = [];
+
+        CreateAppointmentCommand.Execute(slot, clientId, bookedSlots);
 
         //Act
-        AppointmentResponse response = CreateAppointmentCommand.Execute(slot, clientId);
+        AppointmentResponse response = CreateAppointmentCommand.Execute(slot, clientId, bookedSlots);
 
         //Assert
         Assert.NotNull(response);
@@ -47,7 +52,7 @@ public class CreateAppointmentTests
 internal sealed class AppointmentResponse
 {
     public bool IsSuccess { get; set; }
-    internal required Appointment Appointment { get; set; }
+    internal Appointment? Appointment { get; set; }
 }
 
 internal sealed record Slot(DateTime StartDate, DateTime EndDate, Guid StylistId);
@@ -61,8 +66,17 @@ internal sealed class Appointment
 
 internal static class CreateAppointmentCommand
 {
-    public static AppointmentResponse Execute(Slot slot, Guid clientId)
+    public static AppointmentResponse Execute(Slot slot, Guid clientId, IList<Slot> bookedSlots)
     {
+        if (bookedSlots.Contains(slot))
+        {
+            return new AppointmentResponse 
+            { 
+                IsSuccess = false 
+            };
+        }
+        bookedSlots.Add(slot);
+
         Appointment appointment = new()
         {
             Slot = slot,
