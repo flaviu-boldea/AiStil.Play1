@@ -1,5 +1,7 @@
 ﻿namespace AiStilPlay1.Tests;
 
+using AiStilPlay1.App;
+
 public class CreateAppointmentTests
 {
     private static AppointmentRequest CreateAppointmentRequest()
@@ -47,46 +49,15 @@ public class CreateAppointmentTests
         Assert.False(response.IsSuccess);     
         Assert.Null(response.Appointment);
     }
-}
 
-internal sealed class AppointmentResponse
-{
-    public bool IsSuccess { get; set; }
-    internal Appointment? Appointment { get; set; }
-}
-
-internal sealed record Slot(DateTime StartDate, DateTime EndDate, Guid StylistId);
-
-internal sealed record AppointmentRequest(Slot Slot, Guid ClientId);
-
-internal sealed class Appointment
-{
-    internal required Slot Slot { get; set; }
-    public Guid ClientId { get; set; }
-}
-
-internal sealed class CreateAppointmentCommand(IList<Slot> bookedSlots)
-{
-    public AppointmentResponse Execute(AppointmentRequest request)
+    [Fact]
+    public void ShouldThrowWhenRequestIsNull()
     {
-        if (bookedSlots.Contains(request.Slot))
-        {
-            return new AppointmentResponse 
-            { 
-                IsSuccess = false 
-            };
-        }
-        bookedSlots.Add(request.Slot);
+        //Arrange
+        IList<Slot> bookedSlots = [];
+        var command = new CreateAppointmentCommand(bookedSlots);
 
-        Appointment appointment = new()
-        {
-            Slot = request.Slot,
-            ClientId = request.ClientId
-        };
-        return new AppointmentResponse 
-        { 
-            Appointment = appointment,
-            IsSuccess = true 
-        };
+        //Act & Assert
+        Assert.Throws<ArgumentNullException>(() => command.Execute(null!));
     }
 }

@@ -21,4 +21,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AiStilPlay1.App\AiStilPlay1.App.csproj" />
+  </ItemGroup>
+
 </Project>
