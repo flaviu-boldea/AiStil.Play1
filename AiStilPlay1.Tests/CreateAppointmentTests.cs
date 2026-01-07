@@ -17,7 +17,9 @@ public class CreateAppointmentTests
 
         //Assert
         Assert.NotNull(response);
-        Assert.True(response.IsSuccess);        
+        Assert.True(response.IsSuccess);     
+        Assert.Equal(slot, response.Appointment.Slot);
+        Assert.Equal(clientId, response.Appointment.ClientId);   
     }
 }
 
