@@ -14,28 +14,19 @@ public sealed class Stylist
         _slotsRepository = slotsRepository;
     }
     
-    public AppointmentResponse MakeAppointment(Slot slot, Guid clientId)
+    public Appointment? MakeAppointment(Slot slot, Guid clientId)
     {
         if (_slotsRepository.IsSlotBooked(Id, slot))
         {
-            return new AppointmentResponse 
-            { 
-                IsSuccess = false 
-            };
+            return null;
         }
         
         _slotsRepository.BookSlot(Id, slot);
         
-        var appointment = new Appointment
+        return new Appointment
         {
             Slot = slot,
             ClientId = clientId
-        };
-        
-        return new AppointmentResponse 
-        { 
-            Appointment = appointment,
-            IsSuccess = true 
         };
     }
 }

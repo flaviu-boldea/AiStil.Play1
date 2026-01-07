@@ -18,6 +18,12 @@ public sealed class CreateAppointmentCommand(IStylistRepository stylistRepositor
         ArgumentNullException.ThrowIfNull(request);
 
         var stylist = stylistRepository.GetById(request.Slot.StylistId);
-        return stylist.MakeAppointment(request.Slot, request.ClientId);
+        var appointment = stylist.MakeAppointment(request.Slot, request.ClientId);
+        
+        return new AppointmentResponse
+        {
+            Appointment = appointment,
+            IsSuccess = appointment != null
+        };
     }
 }
