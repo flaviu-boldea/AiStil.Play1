@@ -13,7 +13,7 @@ public class CreateAppointmentTests
         var clientId = Guid.Parse("22222222-2222-2222-2222-222222222222");
 
         //Act
-        AppointmentResponse response = new CreateAppointmentCommand().Execute(slot, clientId);
+        AppointmentResponse response = CreateAppointmentCommand.Execute(slot, clientId);
 
         //Assert
         Assert.NotNull(response);
@@ -21,17 +21,34 @@ public class CreateAppointmentTests
     }
 }
 
-public class AppointmentResponse
+internal sealed class AppointmentResponse
 {
     public bool IsSuccess { get; set; }
+    internal required Appointment Appointment { get; set; }
 }
 
-public record Slot(DateTime StartDate, DateTime EndDate, Guid StylistId);
+internal sealed record Slot(DateTime StartDate, DateTime EndDate, Guid StylistId);
 
-public class CreateAppointmentCommand
+
+internal sealed class Appointment
 {
-    public AppointmentResponse Execute(Slot slot, Guid clientId)
+    internal required Slot Slot { get; set; }
+    public Guid ClientId { get; set; }
+}
+
+internal static class CreateAppointmentCommand
+{
+    public static AppointmentResponse Execute(Slot slot, Guid clientId)
     {
-        return new AppointmentResponse { IsSuccess = true };
+        Appointment appointment = new()
+        {
+            Slot = slot,
+            ClientId = clientId
+        };
+        return new AppointmentResponse 
+        { 
+            Appointment = appointment,
+            IsSuccess = true 
+        };
     }
 }
